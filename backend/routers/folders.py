@@ -39,3 +39,10 @@ def get_folder(folder_id: int, db: Session = Depends(get_db)):
         return db.query(models.Folder).filter(models.Folder.id == folder_id).first()
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+    
+@router.get("/")
+def get_folders(db: Session = Depends(get_db)):
+    try:
+        return db.query(models.Folder).all()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
