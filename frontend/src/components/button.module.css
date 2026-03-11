@@ -6,3 +6,16 @@
     border-radius: 8px;
     cursor: pointer;
 }
+
+.add_note_btn {
+    font-size: 13px;
+}
+
+.newNoteBtn span {
+    display: none;
+}
+
+.newNoteBtn {
+    padding: 8px;
+    justify-content: center;
+}

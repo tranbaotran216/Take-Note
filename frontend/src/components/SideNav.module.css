@@ -1,0 +1,162 @@
+.sidenav {
+    background: #1a1c24;
+    height: 100vh;
+    width: 72px;
+    position: fixed;
+    top: 0;
+    left: 0;
+    display: flex;
+    flex-direction: column;
+    z-index: 100;
+    padding: 16px 0;
+    transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    color: #ececed;
+    border-right: 1px solid #2d2f39;
+    overflow-x: hidden;
+}
+
+.sidenav.open {
+    width: 260px;
+}
+
+.toggle {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 16px;
+    margin-bottom: 20px;
+    min-height: 40px;
+}
+
+.menuButton {
+    background: transparent;
+    border: none;
+    color: #94959b;
+    cursor: pointer;
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+
+.menuButton:hover {
+    background: rgba(255, 255, 255, 0.05);
+    color: #fff;
+}
+
+.sectionHeader {
+    padding: 12px 24px 8px;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #6a6b71;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.navItems {
+    display: flex;
+    align-items: center;
+    margin: 2px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.navItems a, .folderItem {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 12px;
+    width: 100%;
+    color: #94959b;
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.navItems:hover {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.navItems:hover a, .navItems:hover svg {
+    color: #fff;
+}
+
+.divider {
+    height: 1px;
+    background: #2d2f39;
+    margin: 12px 16px;
+}
+
+.badge {
+    position: absolute;
+    top: 0;
+    right: 0;
+    background: #3b82f6;
+    color: white;
+    font-size: 10px;
+    padding: 2px 5px;
+    border-radius: 10px;
+    border: 2px solid #1a1c24;
+}
+
+.sidenav:not(.open) .sectionHeader,
+.sidenav:not(.open) span {
+    display: none;
+}
+
+.sidenav:not(.open) .navItems {
+    justify-content: center;
+    margin: 4px 12px;
+}
+
+.sidenav:not(.open) .navItems a {
+    justify-content: center;
+    padding: 10px 0;
+}
+
+.sidenav::-webkit-scrollbar {
+    width: 4px;
+}
+
+.sidenav::-webkit-scrollbar-thumb {
+    background: #2d2f39;
+    border-radius: 10px;
+}
+
+.contextMenu {
+    position: absolute;
+    background: #232530;
+    border: 1px solid #2f313c;
+    border-radius: 10px;
+    padding: 6px;
+    min-width: 140px;
+
+    display: flex;
+    flex-direction: column;
+
+    box-shadow: 
+        0 8px 24px rgba(0,0,0,0.35),
+        0 2px 6px rgba(0,0,0,0.2);
+
+    animation: contextFade 0.12s ease-out;
+    z-index: 999;
+}
+
+.contextMenu div {
+    padding: 8px 12px;
+    font-size: 13px;
+    color: #d2d3d7;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease;
+}
+
+.contextMenu div:hover {
+    background: #3a3d4b;
+    color: #ffffff;
+}

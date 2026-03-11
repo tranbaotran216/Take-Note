@@ -1,0 +1,170 @@
+/* Modal.module.css */
+
+/* Style cho overlay (nền đen phía sau) */
+.overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    animation: fadeIn 0.2s ease-out;
+}
+
+/* Style cho content (khung modal) */
+.content {
+    position: relative;
+    background: white;
+    border-radius: 12px;
+    padding: 24px;
+    width: 90%;
+    max-width: 500px;
+    max-height: 90vh;
+    overflow-y: auto;
+    outline: none;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+    animation: slideIn 0.3s ease-out;
+}
+
+/* Style cho form bên trong modal */
+.form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.formGroup {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.formGroup label {
+    font-weight: 600;
+    color: #333;
+    font-size: 14px;
+}
+
+/* Style cho input title */
+.formGroup input[type="text"] {
+    padding: 12px 14px;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 15px;
+    transition: border-color 0.2s;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.formGroup input[type="text"]:focus {
+    outline: none;
+    border-color: #007bff;
+}
+
+/* Style riêng cho input content - TO HƠN */
+.formGroup:last-of-type input[type="text"] {
+    padding: 16px 14px;  /* Padding dọc lớn hơn */
+    font-size: 16px;      /* Font size lớn hơn */
+    min-height: 80px;     /* Chiều cao tối thiểu */
+    line-height: 1.5;     /* Giãn dòng */
+    resize: vertical;     /* Cho phép kéo to lên theo chiều dọc */
+}
+
+
+.formGroup textarea {
+    padding: 16px 14px;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 16px;
+    min-height: 120px;
+    font-family: inherit;
+    resize: vertical;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.formGroup textarea:focus {
+    outline: none;
+    border-color: #007bff;
+}
+
+
+/* Nút submit */
+.submitButton {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    padding: 14px 20px;  /* Padding lớn hơn */
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    margin-top: 10px;
+    width: 100%;
+}
+
+.submitButton:hover {
+    background-color: #0056b3;
+}
+
+.submitButton:active {
+    transform: translateY(1px);
+}
+
+/* Nút đóng modal */
+.closeButton {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    background: none;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    color: #999;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: all 0.2s;
+}
+
+.closeButton:hover {
+    background-color: #f0f0f0;
+    color: #333;
+}
+
+/* Animations */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateY(-30px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+/* Responsive cho mobile */
+@media (max-width: 768px) {
+    .content {
+        width: 95%;
+        padding: 20px;
+    }
+}
