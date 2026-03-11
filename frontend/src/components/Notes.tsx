@@ -5,8 +5,8 @@ import { useState } from "react"
 import React from "react"
 import Modal from "react-modal"
 
-import { CreateNote } from "../api/notes"
-import type { NoteProps, NoteFormProps } from "../types"
+import { CreateNote, deleteNoteById, updateNote } from "../api/notes"
+import type { NoteProps, NoteFormProps, NoteType } from "../types"
 
 
 
@@ -82,5 +82,26 @@ export const AddNote = ({ setNotes }: NoteProps) =>{
     );
 }
 
+export const DeleteNote = async (note: NoteType, setNotes: React.Dispatch<React.SetStateAction<NoteType[]>>) => {
+    try{
+        console.log("Sẽ xóa note có ID là:", note.id);
+
+        await deleteNoteById(note.id);
+        setNotes(prevNotes => prevNotes.filter(n => n.id !== note.id));
+        console.log("Xóa note thành công");
+    }catch (error) {
+        console.error("Lỗi xóa note:", error);
+    }
+}
+
 export default AddNote;
 
+export const UpdateNote = async (note: NoteType, setNotes: React.Dispatch<React.SetStateAction<NoteType[]>>, title?: string, content?: string) => {
+    try{
+        const res = await updateNote(note.id, {title, content}) ;
+        setNotes(prevNotes => prevNotes.map( n => (n.id === note.id ? res: n)));
+        console.log("Cập nhật ghi chú thành công!");
+    } catch (error) {
+        console.error("Lỗi khi cập nhật ghi chú:", error);
+    }
+}

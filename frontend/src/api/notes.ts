@@ -1,5 +1,6 @@
 import axios from "axios";
 
+
 const API = "http://localhost:8000/notes/"
 
 export const CreateNote = async(title:string, content:string) =>{
@@ -17,4 +18,14 @@ export const getNoteById = async(id: string) => {
 export const getAllNotes = async () => {
     const res = await axios.get(`${API}`)
     return res.data
+}
+
+export const deleteNoteById = async(id: number) => {
+    const res = await axios.delete(`${API}${id}`);
+    return res.data
+}
+
+export const updateNote = async(id: number, updates:{ title?: string, content?: string}) => {
+    const res = await axios.put(`${API}${id}`, updates);
+    return res.data;
 }

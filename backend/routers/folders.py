@@ -46,3 +46,17 @@ def get_folders(db: Session = Depends(get_db)):
         return db.query(models.Folder).all()
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+    
+@router.put("/{id}")
+def update_folder(id: int, folder_data: FolderCreate, db: Session = Depends(get_db)):
+    try: 
+        folder = db.query(models.Folder).filter(models.Folder.id == id).first()
+        if not folder:
+            raise HTTPException(status_code=404, detail="Folder not found")
+        folder.name = folder_data.name
+        db.commit()
+        db.refresh(folder)
+        return folder
+    
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))

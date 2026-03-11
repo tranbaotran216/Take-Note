@@ -46,3 +46,19 @@ def get_all_notes(db: Session=Depends(get_db)):
         return db.query(models.Note).all()
     except Exception as e:
         raise HTTPException(status_code=500, detail=(e))
+    
+
+@router.put("/{id}")
+def update_note(id: int, updated_note: NoteCreate, db: Session=Depends(get_db)):
+    try:
+        note = db.query(models.Note).filter(models.Note.id == id).first()
+        if not note:
+            raise HTTPException(status_code=404, detail="note not found")
+        note.title = updated_note.title
+        note.content = updated_note.content
+        db.commit()
+        db.refresh(note)
+        return note
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+        

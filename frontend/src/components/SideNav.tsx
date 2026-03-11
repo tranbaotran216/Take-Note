@@ -2,17 +2,20 @@ import React, { useState, useEffect, useRef } from "react"
 import { Home, Settings, Menu, User } from "lucide-react"
 import styles from "./SideNav.module.css"
 import { Link } from "react-router-dom"
-import AddFolderButton from "./Folders"
+import { AddFolderButton, DeleteFolder } from "./Folders"
 import type { NoteType, FolderType, SideNavProps } from "../types"
-import { AddNote } from "./Notes"
+import { AddNote, DeleteNote, UpdateNote } from "./Notes"
 import { getAllNotes } from "../api/notes"
-import { getAllFolders } from "../api/folders"
+import { getAllFolders, updateFolder } from "../api/folders"
 
 
 const SideNav = ({ isOpen, setIsOpen }: SideNavProps) => {
     const [folders, setFolders] = useState<FolderType[]>([])
     const [notes, setNotes] = useState<NoteType[]>([])
     const [notificationCount] = useState(3)
+
+    const [editingFolderId, setEditingFolderId] = useState<number | null>(null)
+    const [tempFolderName, setTempFolderName] = useState<string>("")
 
     const [contextMenu, setContextMenu] = useState<{
         visible: boolean
@@ -26,7 +29,25 @@ const SideNav = ({ isOpen, setIsOpen }: SideNavProps) => {
     
     const contextMenuRef= useRef<HTMLDivElement>(null)
 
-
+    const handleUpdateFolderName = async(id: number) => {
+        try{
+            if (!tempFolderName.trim()){
+                setEditingFolderId(null);
+                return;
+            }
+            const res = await updateFolder(id, tempFolderName);
+            if (res) {
+                setFolders(prev => prev.map(f => f.id === id? res : f));
+            } else {
+                console.error("Failed to update folder: no response data");
+            }
+            setEditingFolderId(null);
+        } catch (error) {
+            console.error("Lỗi cập nhật tên folder:", error);
+            setEditingFolderId(null);
+        }
+    }
+    
     const handleNoteRightClick = (e: React.MouseEvent, note: NoteType) => {
         e.preventDefault();
         console.log(`right click on note ${note.id}`)
@@ -130,15 +151,41 @@ const SideNav = ({ isOpen, setIsOpen }: SideNavProps) => {
                         <div key={folder.id} className={styles.navItems} onContextMenu={(e) => handleFolderRightClick(e, folder)}>
                             <div className={styles.folderItem}>
                                 📁
-                                {isOpen && <span>{folder.name}</span>}
+                                { editingFolderId === folder.id ? (
+                                    <input 
+                                        value={tempFolderName}
+                                        autoFocus
+                                        onChange={(e) => setTempFolderName(e.target.value)}
+                                        onBlur={() => handleUpdateFolderName(folder.id)}
+                                        onKeyDown={(e) => {
+                                            if (e.key === "Enter"){
+                                                handleUpdateFolderName(folder.id)
+                                            }
+                                        }}
+                                    />
+                                ) : (isOpen && <span>{folder.name}</span>
+                                    
+                                )}
                             </div>
                         </div>
                     ))}
 
                     {contextMenu.visible && contextMenu.type ==='folder' &&(
                         <div ref={contextMenuRef} className={styles.contextMenu}>
-                            <div>Edit</div>
-                            <div>Delete</div>
+                            <div onClick={() => {
+                                const folder = contextMenu.item as FolderType;
+                                setEditingFolderId(folder.id);
+                                setTempFolderName(folder.name);
+                                setContextMenu({ visible: false, type: null, item: null });
+                            }} >
+                                Edit</div>
+                            <div onClick={(e) => {
+                                e.stopPropagation();
+                                DeleteFolder(contextMenu.item as FolderType, setFolders);
+                                setContextMenu({ visible: false, type:null, item:null });
+                            }}>
+                                Delete
+                            </div>
                         </div>
                     )}
                 </nav>
@@ -158,8 +205,13 @@ const SideNav = ({ isOpen, setIsOpen }: SideNavProps) => {
 
                 {contextMenu.visible && contextMenu.type === 'note' && (
                     <div ref={contextMenuRef} className={styles.contextMenu}>
-                        <div>Edit</div>
-                        <div>Delete</div>
+                        <div onClick={(e) => {
+                            e.stopPropagation();
+                            console.log("onClick Delete triggered");
+                            DeleteNote(contextMenu.item as NoteType, setNotes);
+                            setContextMenu({ visible: false, type: null, item: null });
+                        }}>
+                            Delete</div>
                     </div>
                 )}
             </div>
