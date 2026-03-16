@@ -12,14 +12,13 @@
 
 .main-content {
   flex: 1;
-  /* Khoảng cách mặc định khi SideNav đóng (60px) */
-  margin-left: 60px; 
+  margin-left: 72px; 
   padding: 20px;
-  transition: margin-left 0.3s ease; /* Phải khớp với transition của SideNav */
+  transition: margin-left 0.15s ease-in-out;
   width: 100%;
 }
 
-/* Khi SideNav mở rộng (240px) */
+/* .main-content.shifted không còn sử dụng, margin từ inline style */
 .main-content.shifted {
   margin-left: 240px;
 }

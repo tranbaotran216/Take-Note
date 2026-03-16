@@ -1,14 +1,20 @@
 
-import styles from "./button.module.css"
+import styles from "./SideNav.module.css"
+import styles2 from "./button.module.css"
+
 import modalStyles from "./Modal.module.css"
 import { useState } from "react"
 import React from "react"
 import Modal from "react-modal"
 
+import { Link, useLocation } from "react-router-dom"
 import { CreateNote, deleteNoteById, updateNote } from "../api/notes"
-import type { NoteProps, NoteFormProps, NoteType } from "../types"
+import type { NoteProps, NoteFormProps, NoteType, NoteItemProps } from "../types"
 
 
+if (typeof window!= 'undefined'){
+    Modal.setAppElement('#root');
+}
 
 function NoteForm({ send, showForm, setShowForm }: NoteFormProps) {
     const [title, setTitle] = useState("");
@@ -60,24 +66,33 @@ function NoteForm({ send, showForm, setShowForm }: NoteFormProps) {
     )
 }
 
-export const AddNote = ({ setNotes }: NoteProps) =>{
+export const AddNote = ({Note, setNotes, isOpenSideBar }: NoteProps & { isOpenSideBar:any }) =>{
     const [showForm, setShowForm] = useState(false);
 
     const handleAddNote = async (title: string, content: string) =>{
-        const newNote = await CreateNote(title, content);
+        const existingNames = Note.map(n => n.title)
+
+        let uniqueName = title;
+        let counter=1;
+
+        while (existingNames.includes(uniqueName)) {
+            uniqueName = `${title} (${counter})`;
+            counter++;
+        }
+        const newNote = await CreateNote(uniqueName, content);
         setNotes(prevNotes => [...prevNotes, newNote]);
         setShowForm(false);
     }
     
     return (
         <div >
-            { !showForm ? (
-                <button className={styles.newNoteBtn} onClick={() => setShowForm(true)}>
-                    📝
-                </button>
-            ) : (
-                <NoteForm send={handleAddNote} showForm={showForm} setShowForm={setShowForm}/>
-            )}
+            <button 
+                className={isOpenSideBar ? styles2.newNoteBtn : styles2.newNoteBtnSmall} 
+                onClick={() => setShowForm(true)}
+            >
+                📝
+            </button>
+            <NoteForm send={handleAddNote} showForm={showForm} setShowForm={setShowForm}/>
         </div>
     );
 }
@@ -96,12 +111,58 @@ export const DeleteNote = async (note: NoteType, setNotes: React.Dispatch<React.
 
 export default AddNote;
 
-export const UpdateNote = async (note: NoteType, setNotes: React.Dispatch<React.SetStateAction<NoteType[]>>, title?: string, content?: string) => {
+export const UpdateNote = async (note: NoteType, notes: NoteType[], setNotes: React.Dispatch<React.SetStateAction<NoteType[]>>, title?: string, content?: string) => {
     try{
-        const res = await updateNote(note.id, {title, content}) ;
+
+        let res;
+        let finalTitle;
+        
+        if (title) {
+            const existingTitles = notes.filter(n=> n.id !== note.id).map(n=> n.title);
+
+            let unique = title;
+            let counter = 1;
+
+            while (existingTitles.includes(unique)) {
+                unique = `${title} (${counter})`;
+                counter++;
+            }
+            finalTitle = unique;
+        }
+          
+        res = await updateNote(note.id, {title: finalTitle,  content: content}) ;
         setNotes(prevNotes => prevNotes.map( n => (n.id === note.id ? res: n)));
         console.log("Cập nhật ghi chú thành công!");
     } catch (error) {
         console.error("Lỗi khi cập nhật ghi chú:", error);
     }
+}
+
+export const NoteItem = ({ note, isOpen, depth=0, handleNoteRightClick, handleMoveToParent }: NoteItemProps) => {
+    const location = useLocation()
+    const isActive = location.pathname === `/notes/${note.id}`
+
+    return (
+        <div 
+            key={note.id} 
+            className={`
+                ${styles.navItems}
+                ${depth > 0 ? styles.childNoteItem : ""}
+                ${isActive ? styles.activeNavItem : ""}
+            `} 
+            style={{ paddingLeft: `${(depth * 20) + 12}px` }}
+            onContextMenu={(e) => handleNoteRightClick(e, note)} 
+            draggable
+            onDragStart={(e) => {
+                e.dataTransfer.effectAllowed = "move";
+                e.dataTransfer.setData("noteId", note.id.toString());
+            }}
+        >
+            { isOpen &&
+                (<Link to={`/notes/${note.id}`}>
+                    <span >📔 {note.title}</span>
+                </Link>)
+            }
+        </div>
+    )
 }

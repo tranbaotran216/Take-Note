@@ -46,3 +46,13 @@ export const updateFolder = async (id: number, name: string) => {
         throw error;
     }
 }
+
+export const updateFolderToParent = async (id: number, parent_id: number) => {
+    try{
+        const res = await axios.put(`${API}${id}/move`, { folder_id: parent_id })
+        return res.data;
+    } catch (error) {
+        console.error("cant move folder to parent")
+        throw error;
+    }
+}

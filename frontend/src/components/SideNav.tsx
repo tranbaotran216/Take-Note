@@ -1,18 +1,65 @@
 import React, { useState, useEffect, useRef } from "react"
-import { Home, Settings, Menu, User } from "lucide-react"
+import { Home, Settings, Menu, User, BotMessageSquare } from "lucide-react"
 import styles from "./SideNav.module.css"
-import { Link } from "react-router-dom"
-import { AddFolderButton, DeleteFolder } from "./Folders"
+import { Link, useNavigate, useLocation } from "react-router-dom"
+import { AddFolderButton, DeleteFolder, FolderList } from "./Folders"
 import type { NoteType, FolderType, SideNavProps } from "../types"
-import { AddNote, DeleteNote, UpdateNote } from "./Notes"
-import { getAllNotes } from "../api/notes"
-import { getAllFolders, updateFolder } from "../api/folders"
+import { AddNote, DeleteNote, NoteItem } from "./Notes"
+import { getAllNotes, updateNoteToFolder } from "../api/notes"
+import { getAllFolders, updateFolder, updateFolderToParent } from "../api/folders"
 
 
-const SideNav = ({ isOpen, setIsOpen }: SideNavProps) => {
+const MIN_SIDENAV_WIDTH = 130
+const MAX_SIDENAV_WIDTH = 380
+
+
+const SideNav = ({ isOpen, setIsOpen, width, setWidth }: SideNavProps) => {
+    const navigate = useNavigate();
+    const location = useLocation();
+    
     const [folders, setFolders] = useState<FolderType[]>([])
     const [notes, setNotes] = useState<NoteType[]>([])
     const [notificationCount] = useState(3)
+
+    const [isResizing, setIsResizing] = useState<boolean>(false);
+    const startXRef = useRef<number>(0);
+    const startWidthRef = useRef<number>(0);
+
+    const minWidth = MIN_SIDENAV_WIDTH;
+    const maxWidth = MAX_SIDENAV_WIDTH;
+
+    const startResizing = (e: React.MouseEvent<HTMLDivElement>) => {
+        e.preventDefault();
+        setIsResizing(true);
+        startXRef.current = e.clientX;
+        startWidthRef.current = width;
+    };
+
+    const stopResizing = () => {
+        setIsResizing(false);
+    };
+
+    const resize = (e: MouseEvent) => {
+        if (!isResizing) return;
+        const delta = e.clientX - startXRef.current;
+
+        const newWidth = Math.min(maxWidth, Math.max(minWidth, startWidthRef.current + delta));
+        setWidth(newWidth);
+    };
+
+
+
+    useEffect(() => {
+        if (isResizing) {
+            window.addEventListener('mousemove', resize);
+            window.addEventListener('mouseup', stopResizing);
+        }
+
+        return () => {
+            window.removeEventListener('mousemove', resize);
+            window.removeEventListener('mouseup', stopResizing);
+        };
+    }, [isResizing]);
 
     const [editingFolderId, setEditingFolderId] = useState<number | null>(null)
     const [tempFolderName, setTempFolderName] = useState<string>("")
@@ -20,22 +67,45 @@ const SideNav = ({ isOpen, setIsOpen }: SideNavProps) => {
     const [contextMenu, setContextMenu] = useState<{
         visible: boolean
         type: "folder" | "note" | null
-        item: NoteType  | FolderType | null
+        item: NoteType  | FolderType | null;
+        x : number;
+        y: number;
     }>({
         visible: false,
         type : null,
-        item: null
+        item: null,
+        x: 0,
+        y:0
     })
     
     const contextMenuRef= useRef<HTMLDivElement>(null)
 
     const handleUpdateFolderName = async(id: number) => {
         try{
-            if (!tempFolderName.trim()){
+            const basename = tempFolderName.trim();
+
+            if (!basename){
                 setEditingFolderId(null);
                 return;
             }
-            const res = await updateFolder(id, tempFolderName);
+
+            const currentFolder = folders.find(f => f.id === id);
+            if (currentFolder && currentFolder.name === basename) {
+                setEditingFolderId(null);
+                return;
+            }
+
+            const existingNames = folders.filter(f => f.id !=id).map(f => f.name);
+            
+            let uniqueName = basename;
+            let counter=1;
+
+            while (existingNames.includes(uniqueName)){
+                uniqueName = `${basename} (${counter})`;
+                counter++;
+            }
+
+            const res = await updateFolder(id, uniqueName);
             if (res) {
                 setFolders(prev => prev.map(f => f.id === id? res : f));
             } else {
@@ -54,7 +124,9 @@ const SideNav = ({ isOpen, setIsOpen }: SideNavProps) => {
         setContextMenu({
             visible: true,
             type: 'note',
-            item: note
+            item: note,
+            x: e.clientX,
+            y: e.clientY
         })
     }
 
@@ -63,8 +135,27 @@ const SideNav = ({ isOpen, setIsOpen }: SideNavProps) => {
         setContextMenu({
             visible:true,
             type: 'folder',
-            item: folder
+            item: folder,
+            x: e.clientX,
+            y: e.clientY
         })
+    }
+
+    const handleMoveToParent = async (objectId:number, parentId: number, type:string)=> {
+        try {
+            if (type === "note") {
+                const updatedNote = await updateNoteToFolder(objectId, parentId );
+                setNotes(prev => prev.map(n => n.id === objectId ? updatedNote : n));
+                console.log(`Moved note ${objectId} into folder ${parentId}`)
+            }
+            else if (type === "folder"){
+                const updatedFolder = await updateFolderToParent(objectId, parentId);
+                setFolders(prev => prev.map(n => n.id === objectId ? updatedFolder : n));
+                console.log(`Moved folder ${objectId} into folder ${parentId}`)
+            }
+        } catch (error) {
+            console.error("Error while moving object to parent!", error)
+        }
     }
 
     const fetchFolders = async () => {
@@ -91,7 +182,9 @@ const SideNav = ({ isOpen, setIsOpen }: SideNavProps) => {
             setContextMenu({
                 visible: false,
                 type:null,
-                item:null
+                item:null,
+                x: event.clientX,
+                y: event.clientY
             })
         }
     }
@@ -107,14 +200,47 @@ const SideNav = ({ isOpen, setIsOpen }: SideNavProps) => {
         }
     }, [])
 
+    useEffect(() => {
+        const handleTitleUpdate = (e: Event) => {
+            const customEvent = e as CustomEvent;
+            const { id, title } = customEvent.detail;
+
+            setNotes(prev => prev.map(notes => notes.id === id ? { ...notes, title } : notes))
+        }
+
+        window.addEventListener("update-note-title", handleTitleUpdate);
+        return () => {
+            window.removeEventListener("update-note-title", handleTitleUpdate);
+        }
+    }, []);
+    
+    const effectiveWidth = isOpen ? Math.max(minWidth, Math.min(maxWidth, width)) : 70;
+
     return ( 
-        <aside className={`${styles.sidenav} ${isOpen ? styles.open : ""}`}>
-            <div className={styles.toggle}>
-                {isOpen ? (
-                    <AddNote Note={notes} setNotes={setNotes} />
-                ) : (
-                    <div style={{ width: 36 }} /> 
-                )}
+        <aside
+            className={`${styles.sidenav} ${isOpen ? styles.open : ""}`}
+            style={{ width: effectiveWidth, transition: isResizing ? 'none' : 'width 0.15s ease-in-out' }}
+        >
+            {isOpen && (
+                <div
+                    className={styles.resizer}
+                    onMouseDown={startResizing}
+                    data-testid='sidenav-resizer'
+                />
+            )}
+            <div className={styles.topActions}>
+                <div className={styles.addButtonsWrapper}>
+                    <AddNote 
+                        Note={notes} 
+                        setNotes={setNotes} 
+                        isOpenSideBar={isOpen} 
+                    />
+                    <AddFolderButton
+                        folderList={folders}
+                        setFolders={setFolders}
+                        isOpenSideBar={isOpen}
+                    />
+                </div>
 
                 <button 
                     className={styles.menuButton}
@@ -130,13 +256,6 @@ const SideNav = ({ isOpen, setIsOpen }: SideNavProps) => {
                 </button>
             </div>
 
-            <div className={styles.toggle}>
-                <AddFolderButton
-                    folderList={folders}
-                    setFolders={setFolders}
-                />
-            </div>
-
             <div className={styles.divider}/>
 
             <div className={styles.navContainer} style={{ overflowY: 'auto', flex: 1 }}>
@@ -147,42 +266,47 @@ const SideNav = ({ isOpen, setIsOpen }: SideNavProps) => {
 
                 {isOpen && <div className={styles.sectionHeader}>Folders</div>}
                 <nav>
-                    {folders.map(folder => (
-                        <div key={folder.id} className={styles.navItems} onContextMenu={(e) => handleFolderRightClick(e, folder)}>
-                            <div className={styles.folderItem}>
-                                📁
-                                { editingFolderId === folder.id ? (
-                                    <input 
-                                        value={tempFolderName}
-                                        autoFocus
-                                        onChange={(e) => setTempFolderName(e.target.value)}
-                                        onBlur={() => handleUpdateFolderName(folder.id)}
-                                        onKeyDown={(e) => {
-                                            if (e.key === "Enter"){
-                                                handleUpdateFolderName(folder.id)
-                                            }
-                                        }}
-                                    />
-                                ) : (isOpen && <span>{folder.name}</span>
-                                    
-                                )}
-                            </div>
-                        </div>
+                    {folders.filter(efolder => !efolder.parent_id).map(folder => (
+                        <FolderList 
+                            key={folder.id}
+                            folder={folder}
+                            folders={folders}
+                            notes={notes}
+                            isOpen={isOpen}
+                            editingFolderId={editingFolderId}
+                            tempFolderName={tempFolderName}
+                            setTempFolderName={setTempFolderName}
+                            handleUpdateFolderName={handleUpdateFolderName}
+                            handleFolderRightClick={handleFolderRightClick}
+                            handleNoteRightClick={handleNoteRightClick}
+                            handleMoveToParent={handleMoveToParent}
+                        />
                     ))}
 
                     {contextMenu.visible && contextMenu.type ==='folder' &&(
                         <div ref={contextMenuRef} className={styles.contextMenu}>
-                            <div onClick={() => {
+                            <div onClick={ (e) => {
                                 const folder = contextMenu.item as FolderType;
                                 setEditingFolderId(folder.id);
                                 setTempFolderName(folder.name);
-                                setContextMenu({ visible: false, type: null, item: null });
+                                setContextMenu({ visible: false, type: null, item: null, x:e.clientX, y: e.clientY });
                             }} >
                                 Edit</div>
-                            <div onClick={(e) => {
+                            <div onClick={ async (e) => {
                                 e.stopPropagation();
-                                DeleteFolder(contextMenu.item as FolderType, setFolders);
-                                setContextMenu({ visible: false, type:null, item:null });
+
+                                const folderToDelete = contextMenu.item as FolderType;
+                                await DeleteFolder(folderToDelete, folders, setFolders, setNotes);
+                                const match = location.pathname.match(/\/notes\/(\d+)/);
+                                if (match) {
+                                    const currentNoteId = parseInt(match[1]);
+                                    const activeNote = notes.find(n => n.id === currentNoteId);
+
+                                    if (activeNote && activeNote.folder_id === folderToDelete.id){
+                                        navigate("/");
+                                    }
+                                }
+                                setContextMenu({ visible: false, type:null, item:null, x: e.clientX, y:e.clientY });
                             }}>
                                 Delete
                             </div>
@@ -190,32 +314,38 @@ const SideNav = ({ isOpen, setIsOpen }: SideNavProps) => {
                     )}
                 </nav>
                 
+                <div className={styles.divider} />  
+                <div className={styles.sectionHeader}>Notes</div>
+                <div>
+                    {notes.filter( note => !note.folder_id).map(note => (
+                        <NoteItem 
+                            key={note.id}
+                            note={note}
+                            isOpen={isOpen}
+                            handleNoteRightClick={handleNoteRightClick}
+                            handleMoveToParent={handleMoveToParent}
+                        />
+                    ))}
+
+                    {contextMenu.visible && contextMenu.type === 'note' && (
+                        <div ref={contextMenuRef} className={styles.contextMenu}>
+                            <div onClick={async (e) => {
+                                e.stopPropagation();
+
+                                const noteToDelete = contextMenu.item as NoteType;
+                                console.log("onClick Delete triggered");
+                                await DeleteNote(noteToDelete, setNotes);
+                                if (location.pathname === `/notes/${noteToDelete.id}`) {
+                                    navigate("/");
+                                }
+                                setContextMenu({ visible: false, type: null, item: null, x: e.clientX, y:e.clientY });
+                            }}>
+                                Delete</div>
+                        </div>
+                    )}
+                </div>
+           
             </div>
-
-            <div className={styles.divider} />  
-            <div className={styles.sectionHeader}>Notes</div>
-            <div>
-                {notes.map(note => (
-                    <div key={note.id} className={styles.navItems} onContextMenu={(e) => handleNoteRightClick(e, note)} >
-                        { isOpen &&
-                            (<Link to={`/notes/${note.id}`}>📔 {note.title}</Link>)
-                        }
-                    </div>
-                ))}
-
-                {contextMenu.visible && contextMenu.type === 'note' && (
-                    <div ref={contextMenuRef} className={styles.contextMenu}>
-                        <div onClick={(e) => {
-                            e.stopPropagation();
-                            console.log("onClick Delete triggered");
-                            DeleteNote(contextMenu.item as NoteType, setNotes);
-                            setContextMenu({ visible: false, type: null, item: null });
-                        }}>
-                            Delete</div>
-                    </div>
-                )}
-            </div>
-
 
             <div className={styles.divider} />
             
@@ -227,6 +357,14 @@ const SideNav = ({ isOpen, setIsOpen }: SideNavProps) => {
                         <Home size={18} />
                         {isOpen && <span>Home</span>}
                     </Link>
+                </div>
+
+                <div className={styles.navItems}>
+                    <Link to="/chat">
+                        <BotMessageSquare size={18}/>
+                        {isOpen && <div>Agent</div>}
+                    </Link>
+
                 </div>
 
                 <div className={styles.navItems}>
@@ -243,6 +381,13 @@ const SideNav = ({ isOpen, setIsOpen }: SideNavProps) => {
                     </Link>
                 </div>
             </nav>
+
+            {isOpen && (
+                <div 
+                    className={styles.resize}
+                    onMouseDown={startResizing}
+                />
+            )}
         </aside>
     )
 }

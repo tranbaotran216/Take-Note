@@ -29,3 +29,8 @@ export const updateNote = async(id: number, updates:{ title?: string, content?: 
     const res = await axios.put(`${API}${id}`, updates);
     return res.data;
 }
+
+export const updateNoteToFolder = async(id: number, folder_id: number) => {
+    const res = await axios.put(`${API}${id}/folder`, { folder_id })
+    return res.data;
+}

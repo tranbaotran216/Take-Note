@@ -1,7 +1,7 @@
+/* Container chính của Sidebar */
 .sidenav {
     background: #1a1c24;
     height: 100vh;
-    width: 72px;
     position: fixed;
     top: 0;
     left: 0;
@@ -9,14 +9,53 @@
     flex-direction: column;
     z-index: 100;
     padding: 16px 0;
-    transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    /* Transition chỉ chạy khi KHÔNG kéo (xử lý qua class .isResizing) */
+    transition: width 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     color: #ececed;
     border-right: 1px solid #2d2f39;
     overflow-x: hidden;
+    box-sizing: border-box;
 }
 
-.sidenav.open {
-    width: 260px;
+/* Tắt transition khi đang kéo để tránh bị "lag" */
+.isResizing {
+    transition: none !important;
+    user-select: none;
+}
+
+/* Thanh cầm để kéo rộng/hẹp */
+.resizer {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 4px;
+    height: 100%;
+    cursor: col-resize;
+    z-index: 200;
+    transition: background 0.3s ease;
+}
+
+.resizer:hover, 
+.isResizing .resizer {
+    background: #3b82f6; /* Màu xanh đặc trưng khi tương tác */
+    box-shadow: 0 0 8px rgba(59, 130, 246, 0.5);
+}
+
+.topActions {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 16px;
+    margin-bottom: 16px;
+    min-height: 44px;
+    gap: 8px;
+}
+
+.addButtonsWrapper {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
 }
 
 .toggle {
@@ -24,10 +63,11 @@
     align-items: center;
     justify-content: space-between;
     padding: 0 16px;
-    margin-bottom: 20px;
+    margin-bottom: 16px;
     min-height: 40px;
+    transition: all 0.2s ease;
+    gap: 8px; /* Khoảng cách giữa các nút khi xếp ngang/dọc */
 }
-
 .menuButton {
     background: transparent;
     border: none;
@@ -39,11 +79,11 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: all 0.2s;
+    transition: background 0.2s, color 0.2s;
 }
 
 .menuButton:hover {
-    background: rgba(255, 255, 255, 0.05);
+    background: rgba(255, 255, 255, 0.08);
     color: #fff;
 }
 
@@ -51,57 +91,72 @@
     padding: 12px 24px 8px;
     font-size: 11px;
     text-transform: uppercase;
-    letter-spacing: 1px;
+    letter-spacing: 1.2px;
     color: #6a6b71;
     font-weight: 700;
     white-space: nowrap;
+    opacity: 0.8;
 }
 
 .navItems {
     display: flex;
     align-items: center;
-    margin: 2px 12px;
-    border-radius: 8px;
+    margin: 1px 8px; /* Tỉ lệ lề nhỏ để hover có bo góc đẹp */
+    border-radius: 4px;
+    height: 28px; /* Chiều cao compact giống ảnh mẫu */
     cursor: pointer;
-    transition: all 0.2s;
-}
-
-.navItems a, .folderItem {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 10px 12px;
-    width: 100%;
-    color: #94959b;
-    text-decoration: none;
-    font-size: 14px;
-    font-weight: 500;
+    transition: background 0.1s;
+    position: relative;
+    z-index: 1;
+    font-size: 13;
 }
 
 .navItems:hover {
     background: rgba(255, 255, 255, 0.05);
 }
 
-.navItems:hover a, .navItems:hover svg {
-    color: #fff;
+.navItems a, .folderItem {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 0 12px;
+    width: 100%;
+    height: 100%;
+    color: #94959b;
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 500;
+    white-space: nowrap;
 }
 
-.divider {
-    height: 1px;
-    background: #2d2f39;
-    margin: 12px 16px;
+.sidenav:not(.open) .toggle {
+    flex-direction: column;
+    padding: 0 12px;
 }
 
-.badge {
-    position: absolute;
-    top: 0;
-    right: 0;
-    background: #3b82f6;
-    color: white;
-    font-size: 10px;
-    padding: 2px 5px;
-    border-radius: 10px;
-    border: 2px solid #1a1c24;
+.sidenav:not(.open) .topActions {
+    justify-content: center;
+}
+
+.sidenav:not(.open) .addButtonsWrapper {
+    display: none;
+}
+
+.sidenav:not(.open) .menuButton {
+    margin: 0 auto;
+}
+
+/* Xử lý khi Sidebar đóng */
+.sidenav:not(.open) .navItems {
+    justify-content: center;
+    margin: 4px 12px;
+}
+
+.sidenav:not(.open) .navItems a,
+.sidenav:not(.open) .folderItem {
+    justify-content: center;
+    padding: 0;
+    gap: 0;
 }
 
 .sidenav:not(.open) .sectionHeader,
@@ -109,16 +164,56 @@
     display: none;
 }
 
-.sidenav:not(.open) .navItems {
-    justify-content: center;
-    margin: 4px 12px;
+/* Chữ hiển thị nhãn (Folder name/Note name) */
+.navItems span {
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis; /* Hiện dấu ... khi tên quá dài */
 }
 
-.sidenav:not(.open) .navItems a {
-    justify-content: center;
-    padding: 10px 0;
+.navItems:hover a, 
+.navItems:hover .folderItem {
+    color: #fff;
+}
+.activeNavItem {
+    background: rgba(255, 255, 255, 0.1) !important;
+    border-left: none; /* Bỏ border xanh đi để giống ảnh mẫu */
 }
 
+.activeNavItem a, .activeNavItem .folderItem {
+    color: #ffffff;
+    /* font-weight: 500; */
+}
+
+.activeNavItem a, 
+.activeNavItem span {
+    color: #fff !important;
+    /* font-weight: 600; */
+}
+
+/* Divider */
+.divider {
+    height: 1px;
+    background: #2d2f39;
+    margin: 12px 16px;
+    opacity: 0.5;
+}
+
+/* Badge thông báo */
+.badge {
+    position: absolute;
+    top: -2px;
+    right: -2px;
+    background: #3b82f6;
+    color: white;
+    font-size: 9px;
+    padding: 2px 5px;
+    border-radius: 10px;
+    border: 2px solid #1a1c24;
+    font-weight: bold;
+}
+
+/* Custom Scrollbar cho Sidebar */
 .sidenav::-webkit-scrollbar {
     width: 4px;
 }
@@ -128,35 +223,104 @@
     border-radius: 10px;
 }
 
+/* Context Menu (Chuột phải) */
 .contextMenu {
     position: absolute;
     background: #232530;
     border: 1px solid #2f313c;
     border-radius: 10px;
     padding: 6px;
-    min-width: 140px;
-
+    min-width: 150px;
     display: flex;
     flex-direction: column;
-
-    box-shadow: 
-        0 8px 24px rgba(0,0,0,0.35),
-        0 2px 6px rgba(0,0,0,0.2);
-
-    animation: contextFade 0.12s ease-out;
-    z-index: 999;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    z-index: 1000;
+    /* Hiệu ứng hiện hình */
+    animation: contextFade 0.15s cubic-bezier(0, 0, 0.2, 1);
 }
 
 .contextMenu div {
     padding: 8px 12px;
-    font-size: 13px;
+    font-size: 12px;
     color: #d2d3d7;
     border-radius: 6px;
     cursor: pointer;
-    transition: background 0.15s ease, color 0.15s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
 }
 
 .contextMenu div:hover {
-    background: #3a3d4b;
+    background: #3b82f6;
     color: #ffffff;
+}
+
+/* Định nghĩa Animation cho Context Menu */
+@keyframes contextFade {
+    from {
+        opacity: 0;
+        transform: scale(0.95) translateY(-5px);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+.folderWrapper {
+    display: flex;
+    flex-direction: column;
+}
+
+.dragOver {
+    background: rgba(59, 130, 246, 0.2) !important; /* Hiện màu xanh nhạt khi kéo note qua */
+    border: 1px dashed #3b82f6;
+}
+
+.childNoteList {
+    display: flex;
+    flex-direction: column;
+}
+
+/* Chỉnh lại item con cho vừa vặn với không gian mới */
+.childNoteItem {
+    /* height: 28px;  khoảng cách giữa các item (theo chiều dọc) */
+    /* font-size: 12px;   */
+    margin: 1px 8px; /* Bỏ margin ngang để padding của thẻ cha có tác dụng */
+}
+
+.folderContainer {
+    margin-bottom: 4px;
+}
+
+.addNoteWrapper {
+    flex: 1;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+}
+
+.childGroup {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+}
+
+.treeLine {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 1px;
+    background: #333; /* Màu xám tối cho đường kẻ */
+    z-index: 0;
+}
+
+/* Gắn thẻ tag nhỏ bên phải (giống chữ BASE, PNG trong ảnh) */
+.noteTag {
+    font-size: 9px;
+    color: #555;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    margin-left: auto; /* Đẩy tag sang sát mép phải */
+    padding-right: 8px;
 }

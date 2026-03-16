@@ -1,21 +1,105 @@
-.add_folder_button {
+.newNoteBtn {
     display: flex;
     align-items: center;
-    gap: 16px;
-    padding: 10px;
+    justify-content: center;
+    gap: 8px;
+    width: 100%; /* Giãn đầy phần div flex: 1 bao quanh nó */
+    height: 36px; /* Cố định chiều cao bằng với Menu Toggle */
+    padding: 0 10px;
+    background: #3b82f6; 
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
+    box-sizing: border-box; /* Quan trọng để tránh tràn lề */
+}
+
+.newNoteBtn:hover {
+    background: #2563eb;
+    transform: translateY(-1px);
+    box-shadow: 0 6px 16px rgba(59, 130, 246, 0.3);
+}
+
+.newNoteBtn:active {
+    transform: translateY(0);
+}
+
+/* Nút tạo Note khi Sidebar ĐÓNG */
+.newNoteBtnSmall {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px; /* Sửa thành 36px để bằng với kích thước menuButton */
+    height: 36px;
+    background: #3b82f6;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    margin: 0; 
+    flex-shrink: 0; /* Không cho phép thu nhỏ khi thiếu chỗ */
+}
+
+.newNoteBtnSmall:hover {
+    background: #2563eb;
+    border-radius: 12px; /* Hiệu ứng đổi hình dáng nhẹ khi hover */
+}
+
+.add_folder_button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%; /* Giãn đầy container */
+    height: 36px;
+    background: rgba(59, 130, 246, 0.1);
+    color: #a6c8ff;
+    border: 1px solid rgba(59, 130, 246, 0.35);
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-sizing: border-box;
+    padding: 0 10px;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.add_folder_button:hover {
+    background: rgba(59, 130, 246, 0.2);
+    color: #fff;
+    border-color: #3b82f6;
+}
+
+.add_folder_button svg {
+    width: 18px;
+    height: 18px;
+}
+
+.add_folder_button_small {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    background: rgba(59, 130, 246, 0.1);
+    color: #a6c8ff;
+    border: 1px solid rgba(59, 130, 246, 0.35);
     border-radius: 8px;
     cursor: pointer;
 }
 
-.add_note_btn {
-    font-size: 13px;
+.add_folder_button_small:hover {
+    background: rgba(59, 130, 246, 0.2);
+    color: #fff;
+    border-color: #3b82f6;
 }
 
-.newNoteBtn span {
-    display: none;
-}
-
-.newNoteBtn {
-    padding: 8px;
-    justify-content: center;
+:global(.sidenav:not(.open)) .add_folder_button {
+    width: 36px;
+    padding: 0;
 }
