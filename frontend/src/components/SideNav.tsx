@@ -266,7 +266,7 @@ const SideNav = ({ isOpen, setIsOpen, width, setWidth }: SideNavProps) => {
 
                 {isOpen && <div className={styles.sectionHeader}>Folders</div>}
                 <nav>
-                    {folders.filter(efolder => !efolder.parent_id).map(folder => (
+                    {folders.filter(efolder => !efolder.parent_id && !efolder.is_deleted).map(folder => (
                         <FolderList 
                             key={folder.id}
                             folder={folder}
@@ -317,7 +317,7 @@ const SideNav = ({ isOpen, setIsOpen, width, setWidth }: SideNavProps) => {
                 <div className={styles.divider} />  
                 <div className={styles.sectionHeader}>Notes</div>
                 <div>
-                    {notes.filter( note => !note.folder_id).map(note => (
+                    {notes.filter( note => !note.folder_id && !note.is_deleted).map(note => (
                         <NoteItem 
                             key={note.id}
                             note={note}

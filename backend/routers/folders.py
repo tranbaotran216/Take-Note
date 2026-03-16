@@ -5,6 +5,9 @@ from ..dependencies import get_db
 from pydantic import BaseModel
 from ..src.database.models import FolderCreate, FolderUpdate
 from ..rag.chunking import run_ingestion
+from sqlalchemy import select
+
+from datetime import datetime, timezone
 
 router=APIRouter(prefix="/folders", tags=["folders"])
 @router.post("/")
@@ -43,6 +46,78 @@ def delete_folder(folder_id:int, bgt:BackgroundTasks, db: Session=Depends(get_db
         return {"detail": "Folder deleted successfully"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+#  recursive cte
+def get_subtree(folder_id: int, db: Session):
+    folder_tree = (
+        select(models.Folder.id)
+        .where(models.Folder.id == folder_id)
+        .cte(name="folder_tree", recursive=True)
+    )   
+
+    # alias folder table
+    folder_alias = models.Folder.__table__.alias()
+
+    folder_tree = folder_tree.union_all(
+        select(folder_alias.c.id).where(
+            folder_alias.c.parent_id == folder_tree.c.id
+        )
+    )
+
+    query = select(folder_tree.c.id)
+    ids = db.execute(query).scalars().all()
+    return ids
+
+
+def trash_recursive(cur_folder_id : int, db: Session) :
+        now = datetime.now(timezone.utc)
+        ids = get_subtree(cur_folder_id, db)
+        db.query(models.Note).filter(models.Note.folder_id.in_(ids)).update({
+            "is_deleted" : True,
+            "deleted_at" : now
+        }, synchronize_session=False)
+
+        db.query(models.Folder).filter(models.Folder.id.in_(ids)).update({
+            "is_deleted" : True,
+            "deleted_at" : now
+        }, synchronize_session=False)
+
+
+@router.put("/{id}/trash")
+def trash_folder (id: int, bgt: BackgroundTasks, db: Session = Depends(get_db)):
+    try:
+        folder = db.query(models.Folder).filter(models.Folder.id == id).first()
+
+        if not folder:
+            raise HTTPException(status_code=404, detail="Folder not found")
+        trash_recursive(cur_folder_id=id, db=db)
+
+        db.commit()
+        bgt.add_task(run_ingestion)
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.put("/trash")
+def trash_all_folders ( bgt: BackgroundTasks, db: Session = Depends(get_db)):
+    try:
+        now = datetime.now(timezone.utc)
+        db.query(models.Folder).filter(models.Folder.is_deleted == False).update({
+            "is_deleted" : True,
+            "deleted_at" : now
+        }, synchronize_session=False)
+
+        db.query(models.Note).filter(models.Note.is_deleted == False, models.Note.folder_id == None).update({
+            "is_deleted" : True,
+            "deleted_at" : now
+        }, synchronize_session=False)
+
+        db.commit()
+        bgt.add_task(run_ingestion)
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
     
 
 @router.get("/{folder_id}")
@@ -55,7 +130,7 @@ def get_folder(folder_id: int, db: Session = Depends(get_db)):
 @router.get("/")
 def get_folders(db: Session = Depends(get_db)):
     try:
-        return db.query(models.Folder).all()
+        return db.query(models.Folder).filter(models.Folder.is_deleted == False).all()
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
     

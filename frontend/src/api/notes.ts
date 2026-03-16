@@ -34,3 +34,17 @@ export const updateNoteToFolder = async(id: number, folder_id: number) => {
     const res = await axios.put(`${API}${id}/folder`, { folder_id })
     return res.data;
 }
+
+export const trashNoteById = async (id: number) => {
+    const res = await axios.put(`${API} ${id}/trash`);
+    return res.data;
+}
+
+export const trashAllNotes = async () => {
+    try {
+        await axios.put(`${API}/trash`);
+    } catch (error) {
+        console.error("cant move all notes to trash")
+        throw error;
+    }
+}

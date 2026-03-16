@@ -8,7 +8,7 @@ import React from "react"
 import Modal from "react-modal"
 
 import { Link, useLocation } from "react-router-dom"
-import { CreateNote, deleteNoteById, updateNote } from "../api/notes"
+import { CreateNote, updateNote, trashNoteById } from "../api/notes"
 import type { NoteProps, NoteFormProps, NoteType, NoteItemProps } from "../types"
 
 
@@ -101,7 +101,7 @@ export const DeleteNote = async (note: NoteType, setNotes: React.Dispatch<React.
     try{
         console.log("Sẽ xóa note có ID là:", note.id);
 
-        await deleteNoteById(note.id);
+        await trashNoteById(note.id);
         setNotes(prevNotes => prevNotes.filter(n => n.id !== note.id));
         console.log("Xóa note thành công");
     }catch (error) {

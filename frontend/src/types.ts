@@ -7,6 +7,8 @@ export interface NoteType {
     created_at: Date,
     updated_at: Date;
     folder_id: number | null;
+    is_deleted: boolean;
+    deleted_at: Date | null;
 }
 
 export interface NoteProps {
@@ -33,6 +35,11 @@ export interface FolderType{
     id: number,
     name: string
     parent_id: number | null;
+
+    created_at: Date
+    updated_at: Date
+    is_deleted: boolean
+    deleted_at: Date | null;
 }
 
 export interface FolderProps {

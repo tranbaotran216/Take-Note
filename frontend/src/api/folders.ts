@@ -56,3 +56,23 @@ export const updateFolderToParent = async (id: number, parent_id: number) => {
         throw error;
     }
 }
+
+export const trashFolderById = async (folder: FolderType) => {
+    try{
+        const id = folder.id;
+        const res = await axios.put(`${API} ${id}/trash`);
+        return res.data;
+    } catch (error) {
+        console.error("cant move folder to trash")
+        throw error;
+    }
+}
+
+export const trashAllFolders = async () => {
+    try {
+        await axios.put(`${API}/trash`);
+    } catch (error) {
+        console.error("cant move all folders to trash")
+        throw error;
+    }
+}

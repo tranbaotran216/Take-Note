@@ -1,6 +1,6 @@
 import { Folder, ChevronRight, ChevronDown } from "lucide-react"
 import styles from "./SideNav.module.css"
-import { createFolder, deleteFolder } from "../api/folders";
+import { createFolder, deleteFolder, trashFolderById } from "../api/folders";
 import type { FolderProps, FolderType, FolderListProps, NoteType } from "../types";
 import { NoteItem } from "./Notes";
 import { useState } from "react";
@@ -42,7 +42,7 @@ export const DeleteFolder = async (
     setNotes: React.Dispatch<React.SetStateAction<NoteType[]>>
 ) =>{
     try{
-        await deleteFolder(deleted_folder); // da gui yeu cau delete folder den database + database da return ket qua cho request
+        await trashFolderById(deleted_folder); // da gui yeu cau delete folder den database + database da return ket qua cho request
 
         //find all folders'id
         const folderIdsToDelelte = new Set<number>();
@@ -79,8 +79,8 @@ export const FolderList = ({
     // State quản lý việc đóng/mở thư mục
     const [isExpanded, setIsExpanded] = useState(true);
 
-    const childFolders = folders.filter((f: FolderType) => f.parent_id === folder.id)
-    const childNotes = notes.filter((n: NoteType) => n.folder_id == folder.id)
+    const childFolders = folders.filter((f: FolderType) => f.parent_id === folder.id  && !f.is_deleted)
+    const childNotes = notes.filter((n: NoteType) => n.folder_id == folder.id && !n.is_deleted)
     
     // Khoảng cách thụt lề cơ sở
     const indentBase = 16; 

@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, DateTime, Text, ForeignKey
+from sqlalchemy import Column, Integer, String, DateTime, Text, ForeignKey, Boolean
 from datetime import datetime
 from .database import base
 from sqlalchemy.orm import relationship
@@ -14,6 +14,8 @@ class Note(base):
     updated_at = Column(DateTime, default=datetime.now, onupdate=datetime.now)
 
     folder_id = Column(Integer, ForeignKey("folders.id"), nullable=True)
+    is_deleted = Column(Boolean, default=False)
+    deleted_at = Column(DateTime, nullable=True)
 
 class Folder(base):
     __tablename__ = "folders"
@@ -22,6 +24,9 @@ class Folder(base):
     created_at = Column(DateTime, default=datetime.now)
     updated_at = Column(DateTime, default=datetime.now, onupdate=datetime.now)
     parent_id = Column(Integer, ForeignKey("folders.id"), nullable=True)
+
+    is_deleted = Column(Boolean, default=False)
+    deleted_at = Column(DateTime, nullable=True)
 
 class FolderCreate(BaseModel):
     name: str
@@ -40,6 +45,9 @@ class ChatHistory(base):
     role = Column(String, nullable=False)
     content = Column(Text, nullable=False )
     created_at = Column(DateTime, default=datetime.now)
+
+    is_deleted = Column(Boolean, default=False)
+    deleted_at = Column(DateTime, nullable=True)
 
 
 class ChatRequest(BaseModel):
