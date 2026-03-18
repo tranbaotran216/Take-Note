@@ -23,6 +23,27 @@ def create_note(note: NoteCreate, bgt: BackgroundTasks, db : Session = Depends(g
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+@router.get("/trash")
+def get_trashed_notes(db: Session = Depends(get_db)):
+    try:
+        return db.query(models.Note).filter(models.Note.is_deleted == True).all()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.put("/restore")
+def restore_all_notes(db: Session = Depends(get_db)):
+    try:
+        restored_rows = db.query(models.Note).filter(models.Note.is_deleted == True).update({
+            "is_deleted" : False,
+            "deleted_at" : None
+        }, synchronize_session=False)
+        if restored_rows == 0:
+            raise HTTPException(status_code=404, detail="No deleted folders to restore")
+        db.commit()
+        return {"detail": f"Restored {restored_rows} folders"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 @router.delete("/{note_id}")
 def delete_note(note_id: int,bgt: BackgroundTasks, db: Session = Depends(get_db)):
     try:
@@ -118,3 +139,33 @@ def trash_all_notes ( bgt: BackgroundTasks, db: Session = Depends(get_db)):
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+    
+@router.put("/{id}/favorite")
+def toggle_favorite_note (id: int, db: Session = Depends(get_db)):
+    try:
+        note = db.query(models.Note).filter(models.Note.id == id).first()
+        if not note:
+            raise HTTPException(status_code=404, detail="Note not found")
+        note.is_favorite = not note.is_favorite
+        db.commit()
+        db.refresh(note)
+        return note
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    
+@router.put("/{id}/restore")
+def restore_note_by_id(id: int, db: Session=Depends(get_db)):
+    try:
+        note = db.query(models.Note).filter(models.Note.id == id, models.Note.is_deleted == True).first()
+        if not note:
+            raise HTTPException(status_code=404, detail="Note not found")
+        
+        note.is_deleted = False
+        note.deleted_at = None
+        db.commit()
+        db.refresh(note)
+        return note
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    
+        

@@ -9,6 +9,7 @@ export interface NoteType {
     folder_id: number | null;
     is_deleted: boolean;
     deleted_at: Date | null;
+    is_favorite: boolean;
 }
 
 export interface NoteProps {
@@ -40,6 +41,7 @@ export interface FolderType{
     updated_at: Date
     is_deleted: boolean
     deleted_at: Date | null;
+    is_favorite: boolean;
 }
 
 export interface FolderProps {

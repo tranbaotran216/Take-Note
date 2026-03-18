@@ -16,6 +16,7 @@ class Note(base):
     folder_id = Column(Integer, ForeignKey("folders.id"), nullable=True)
     is_deleted = Column(Boolean, default=False)
     deleted_at = Column(DateTime, nullable=True)
+    is_favorite = Column(Boolean, default=False)
 
 class Folder(base):
     __tablename__ = "folders"
@@ -27,6 +28,7 @@ class Folder(base):
 
     is_deleted = Column(Boolean, default=False)
     deleted_at = Column(DateTime, nullable=True)
+    is_favorite = Column(Boolean, default=False)
 
 class FolderCreate(BaseModel):
     name: str

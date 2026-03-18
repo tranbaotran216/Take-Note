@@ -1,0 +1,126 @@
+/* Container chính của trang Trash */
+.container {
+    padding: 20px 40px;
+    max-width: 800px;
+    margin: 0 auto;
+    color: #ececed;
+    animation: fadeIn 0.3s ease-in-out;
+}
+
+.pageTitle {
+    font-size: 24px;
+    margin-bottom: 30px;
+    color: #ffffff;
+}
+
+/* Tiêu đề từng mục (FOLDERS, NOTES) */
+.sectionTitle {
+    font-size: 13px;
+    letter-spacing: 1px;
+    color: #94959b;
+    border-bottom: 1px solid #2d2f39;
+    padding-bottom: 10px;
+    margin-top: 30px;
+    margin-bottom: 16px;
+}
+
+.listContainer {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 30px;
+}
+
+.emptyText {
+    color: #6a6b71;
+    font-size: 13px;
+    font-style: italic;
+    padding: 10px 0;
+}
+
+/* Item Folder bị xóa */
+.folderItem {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    background: #232530;
+    border: 1px solid transparent;
+    border-radius: 8px;
+    cursor: context-menu;
+    transition: all 0.2s ease;
+}
+
+.folderItem:hover {
+    background: #2d2f39;
+    border-color: #3b82f6;
+}
+
+.folderName {
+    font-size: 14px;
+    font-weight: 500;
+    color: #d2d3d7;
+}
+
+.dateText {
+    margin-left: auto;
+    font-size: 12px;
+    color: #6a6b71;
+}
+
+/* --- Context Menu (Chuột phải) --- */
+.contextMenu {
+    position: absolute;
+    background: #232530;
+    border: 1px solid #2f313c;
+    border-radius: 8px;
+    padding: 6px;
+    min-width: 160px;
+    z-index: 1000;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+    animation: contextFade 0.15s cubic-bezier(0, 0, 0.2, 1);
+}
+
+.menuItem {
+    padding: 8px 12px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 13px;
+    color: #d2d3d7;
+    border-radius: 6px;
+    transition: background 0.1s, color 0.1s;
+}
+
+.menuItem:hover {
+    background: #3b82f6;
+    color: #ffffff;
+}
+
+/* Class riêng cho nút xóa vĩnh viễn (Màu đỏ) */
+.deleteItem {
+    color: #ef4444;
+}
+
+.deleteItem:hover {
+    background: #ef4444;
+    color: #ffffff;
+}
+
+/* Hiệu ứng mượt mà */
+@keyframes contextFade {
+    from {
+        opacity: 0;
+        transform: scale(0.95) translateY(-5px);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}

@@ -1,15 +1,15 @@
 import React, { useState, useEffect, useRef } from "react"
-import { Home, Settings, Menu, User, BotMessageSquare } from "lucide-react"
+import { Home, Settings, Menu, User, BotMessageSquare, Search, Folder, Star, Trash2Icon } from "lucide-react"
 import styles from "./SideNav.module.css"
 import { Link, useNavigate, useLocation } from "react-router-dom"
 import { AddFolderButton, DeleteFolder, FolderList } from "./Folders"
 import type { NoteType, FolderType, SideNavProps } from "../types"
 import { AddNote, DeleteNote, NoteItem } from "./Notes"
-import { getAllNotes, updateNoteToFolder } from "../api/notes"
-import { getAllFolders, updateFolder, updateFolderToParent } from "../api/folders"
+import { getAllNotes, updateNoteToFolder, toggleFavoriteNote } from "../api/notes"
+import { getAllFolders, updateFolder, updateFolderToParent, toggleFolderFavorite } from "../api/folders"
 
 
-const MIN_SIDENAV_WIDTH = 130
+const MIN_SIDENAV_WIDTH = 250
 const MAX_SIDENAV_WIDTH = 380
 
 
@@ -177,6 +177,17 @@ const SideNav = ({ isOpen, setIsOpen, width, setWidth }: SideNavProps) => {
         }
     }
 
+    useEffect(() => {
+        const handleRefresh = () => {
+            fetchFolders();
+            fetchNotes();
+        };
+        window.addEventListener("refresh-sidebar", handleRefresh);
+        return () => {
+            window.removeEventListener("refresh-sidebar", handleRefresh)
+        };
+    }, []);
+
     const handleClickOutside = (event:MouseEvent) => {
         if (contextMenuRef.current && !contextMenuRef.current.contains(event.target as Node)) {
             setContextMenu({
@@ -215,6 +226,50 @@ const SideNav = ({ isOpen, setIsOpen, width, setWidth }: SideNavProps) => {
     }, []);
     
     const effectiveWidth = isOpen ? Math.max(minWidth, Math.min(maxWidth, width)) : 70;
+
+    // -------------- search bar -----------------------------
+    const [searchQuery, setSearchQuery] = useState("");
+    const searchRef = useRef<HTMLDivElement>(null); // click outside close search bar
+    const query = searchQuery.toLocaleLowerCase().trim();
+
+    const matchedFolders = query? folders.filter(f => !f.is_deleted && f.name.toLocaleLowerCase().includes(query)) : [];
+    const matchedTitleNotes = query ? notes.filter(n => !n.is_deleted && n.title.toLocaleLowerCase().includes(query)) : [];
+
+    const matchedContentNotes = query ? notes.filter(n => {
+        if (n.is_deleted) return false;
+        if (n.title.toLocaleLowerCase().includes(query)) return false;
+
+        const rawContent = n.content ? n.content.replace(/<[^>]*>?/gm, '').toLowerCase() : "";
+        return rawContent.includes(query);
+    }) : [];
+
+    useEffect(() => {
+        const handleOutsideSearch = (e: MouseEvent) => {
+            if (searchRef.current && !searchRef.current.contains(e.target as Node)) {
+                setSearchQuery("");   
+            }
+        };
+        document.addEventListener("mousedown", handleOutsideSearch);
+        return () => document.removeEventListener("mousedown", handleOutsideSearch);
+    }, []);
+
+    // ----------- expand folders --------------------
+    const handleClickFolderExpansion = (targetFolderId : number) => {
+        const ancestorsIds = new Set<number>();
+        let curId : number | null | undefined = targetFolderId;
+        while (curId) {
+            ancestorsIds.add(curId);
+            const curFolderId = folders.find(f => f.id === curId);
+            curId = curFolderId?.parent_id;
+        }
+
+        window.dispatchEvent(new CustomEvent("expand-folders", {
+            detail:{
+                folderIds:  Array.from(ancestorsIds),
+                targetId: targetFolderId
+            }
+        }));
+    }
 
     return ( 
         <aside
@@ -259,6 +314,73 @@ const SideNav = ({ isOpen, setIsOpen, width, setWidth }: SideNavProps) => {
             <div className={styles.divider}/>
 
             <div className={styles.navContainer} style={{ overflowY: 'auto', flex: 1 }}>
+                {/* search bar */}
+                {isOpen && (
+                    <div className={styles.searchContainer} ref={searchRef}>
+                        <div className={styles.searchInputWrapper}>
+                            <Search size={14} className={styles.searchIcon}/>
+                            <input 
+                                type="text" 
+                                placeholder="Search files..."
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                className={styles.searchInput}
+                            
+                            />
+                        </div>
+                        {/* dropdown search results */}
+                        {searchQuery && (
+                            <div className={styles.searchDropdown}>
+                                {(matchedFolders.length > 0 || matchedTitleNotes.length > 0) && (
+                                    <div>
+                                        {matchedFolders.map(f => (
+                                            <div key={`f-${f.id}`} className={styles.searchItem} onClick={() => setSearchQuery("")}>
+                                                <span className={styles.itemIcon}><Folder size={14} color="#dcb67a" /></span>
+                                                <span className={styles.itemText}>{f.name}</span>
+                                                <span className={styles.itemMeta}>folder</span>
+                                            </div>
+                                        ))}
+                                        {matchedTitleNotes.map(n => (
+                                            <div key={`nt-${n.id}`} className={styles.searchItem} onClick={() => {
+                                                navigate(`/notes/${n.id}`);
+                                                setSearchQuery(""); // Chọn xong thì đóng dropdown
+                                            }}>
+                                                <span className={styles.itemIcon}>📔</span>
+                                                <span className={styles.itemText}>{n.title}</span>
+                                                <span className={styles.itemMeta}>title match</span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+
+                                {(matchedFolders.length > 0 || matchedTitleNotes.length > 0) && matchedContentNotes.length > 0 && (
+                                    <div className={styles.searchDivider}/>
+                                )}
+
+                                {matchedContentNotes.length >0 && (
+                                    <div>
+                                        {matchedContentNotes.map(n => (
+                                            <div key={`nc-${n.id}`} className={styles.searchItem} onClick={() => {
+                                                navigate(`/notes/${n.id}`);
+                                                setSearchQuery("");
+                                            }}>
+                                                <span className={styles.itemIcon}>📔</span>
+                                                <span className={styles.itemText}>{n.title}</span>
+                                                <span className={styles.itemMeta}>content match</span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+
+                                {matchedFolders.length === 0 && matchedTitleNotes.length === 0 && matchedContentNotes.length === 0 && (
+                                    <div className={styles.noResults}>No results found</div>
+                                )}
+                            </div>
+                        )}
+                    </div>
+                )}
+
+
                 {isOpen && <div className={styles.sectionHeader}>Recent</div>}
                 {/* Render recent notes here */}
 
@@ -286,6 +408,7 @@ const SideNav = ({ isOpen, setIsOpen, width, setWidth }: SideNavProps) => {
                     {contextMenu.visible && contextMenu.type ==='folder' &&(
                         <div ref={contextMenuRef} className={styles.contextMenu}>
                             <div onClick={ (e) => {
+                                e.stopPropagation();
                                 const folder = contextMenu.item as FolderType;
                                 setEditingFolderId(folder.id);
                                 setTempFolderName(folder.name);
@@ -309,6 +432,17 @@ const SideNav = ({ isOpen, setIsOpen, width, setWidth }: SideNavProps) => {
                                 setContextMenu({ visible: false, type:null, item:null, x: e.clientX, y:e.clientY });
                             }}>
                                 Delete
+                            </div>
+
+                            <div onClick={ async (e) => {
+                                e.stopPropagation();
+                                const folder = contextMenu.item as FolderType;
+                                const updatedFolder = await toggleFolderFavorite(folder.id);
+
+                                setFolders(prev => prev.map(f => f.id === folder.id ? updatedFolder : f));
+                                setContextMenu({ visible: false, type: null, item: null, x: 0, y: 0 });
+                            }}>
+                                {contextMenu.item?.is_favorite ? "Remove from Favorites" : "Add to Favorites"}
                             </div>
                         </div>
                     )}
@@ -341,11 +475,58 @@ const SideNav = ({ isOpen, setIsOpen, width, setWidth }: SideNavProps) => {
                                 setContextMenu({ visible: false, type: null, item: null, x: e.clientX, y:e.clientY });
                             }}>
                                 Delete</div>
+
+                            <div onClick={async (e) => {
+                                e.stopPropagation();
+                                const note = contextMenu.item as NoteType;
+                                const noteUpdated = await toggleFavoriteNote(note.id);
+
+                                setNotes(prev => prev.map(n => n.id === note.id ? noteUpdated : n));
+                                setContextMenu({ visible: false, type: null, item: null, x: e.clientX, y:e.clientY });
+                            }}>
+                                {contextMenu.item?. is_favorite ? "Remove from Favorites" : "Add to Favorites"}
+                            </div>
                         </div>
                     )}
                 </div>
            
             </div>
+
+            <div className={styles.divider} />
+            {/* Favorite section */}
+            {isOpen && (
+                <>
+                    <div className={styles.sectionHeader}>Favorites</div>
+                    <div style={{ marginBottom: 12 }}>
+                        {folders.filter( f=> f.is_favorite && !f.is_deleted).map( folder => (
+                            <div key={`fav-f-${folder.id}`} className={styles.navItems} onClick={() => handleClickFolderExpansion(folder.id)}>
+                                <div className={styles.folderItem}>
+                                    <Star size={14} fill="#eab308" color="#eab308" /> {/* Ngôi sao vàng */}
+                                    <span>{folder.name}</span>
+                                </div>
+                            </div>
+                        ))}
+
+                        {notes.filter(n => n.is_favorite && !n.is_deleted).map(note => (
+                            <div key={`fav-n-${note.id}`} className={styles.navItems} onClick={() => navigate(`/notes/${note.id}`)}>
+                                <div className={styles.folderItem}> {/* Dùng chung class cho đẹp */}
+                                    <Star size={14} fill="#f1cb58" color="#f8cd4c" />
+                                    <span>{note.title}</span>
+                                </div>
+                            </div>
+                        ))}
+                        
+                        {/* Hiển thị dòng chữ nếu chưa có Favorite nào */}
+                        {folders.filter(f => f.is_favorite && !f.is_deleted).length === 0 && 
+                        notes.filter(n => n.is_favorite && !n.is_deleted).length === 0 && (
+                            <div style={{ padding: '0 24px', color: '#6a6b71', fontSize: '12px' }}>
+                                No favorites yet.
+                            </div>
+                        )}
+
+                    </div>
+                </>
+            )}
 
             <div className={styles.divider} />
             
@@ -365,6 +546,13 @@ const SideNav = ({ isOpen, setIsOpen, width, setWidth }: SideNavProps) => {
                         {isOpen && <div>Agent</div>}
                     </Link>
 
+                </div>
+
+                <div className={styles.navItems}>
+                    <Link to="/trash">
+                        <Trash2Icon size={18}/>
+                        {isOpen && <span>Trash</span>}
+                    </Link>
                 </div>
 
                 <div className={styles.navItems}>

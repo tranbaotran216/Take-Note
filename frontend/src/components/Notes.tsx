@@ -166,3 +166,4 @@ export const NoteItem = ({ note, isOpen, depth=0, handleNoteRightClick, handleMo
         </div>
     )
 }
+

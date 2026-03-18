@@ -36,7 +36,7 @@ export const updateNoteToFolder = async(id: number, folder_id: number) => {
 }
 
 export const trashNoteById = async (id: number) => {
-    const res = await axios.put(`${API} ${id}/trash`);
+    const res = await axios.put(`${API}${id}/trash`);
     return res.data;
 }
 
@@ -47,4 +47,39 @@ export const trashAllNotes = async () => {
         console.error("cant move all notes to trash")
         throw error;
     }
+}
+
+export const toggleFavoriteNote = async (id: number) => {
+    try{
+        const res = await axios.put(`${API}${id}/favorite`);
+        return res.data;
+    } catch (error) {
+        console.error("cant toggle favorite note")
+        throw error;
+    }
+} 
+
+export const restoreNoteByID = async(id: number) => {
+    try{
+        const res = await axios.put(`${API}${id}/restore`)
+        return res.data;
+    } catch (error){
+        console.error("restore failed")
+        throw error;
+    }
+}
+
+export const restoreAllNotes = async() => {
+    try{
+        const res = await axios.put(`${API}/restore`)
+        return res.data;
+    } catch (error){
+        console.error("restore failed")
+        throw error;
+    }
+}
+
+export const getTrashedNotes = async () => {
+    const res = await axios.get(`${API}trash`);
+    return res.data;
 }

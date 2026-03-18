@@ -6,6 +6,7 @@ import { Route, Routes } from 'react-router-dom'
 import Home from "./pages/Home"
 import Settings from './pages/Settings'
 import AgentChat from './pages/AgentChat'
+import Trash from './pages/TrashPage'
 import { OpenNote } from './pages/NotePage'
 import { useEffect, useState } from 'react'
 
@@ -51,6 +52,7 @@ function App() {
           <Route path='/Settings' element={<Settings/>}/>
           <Route path='/notes/:id' element={<OpenNote/>} />
           <Route path='/chat' element={<AgentChat/>}/>
+          <Route path='/trash' element={<Trash/>}/>
         </Routes>
       </main>
     </div>

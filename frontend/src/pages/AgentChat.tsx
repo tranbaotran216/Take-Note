@@ -50,8 +50,7 @@ const AgentChat = () => {
                 <div className="max-w-3xl mx-auto space-y-6">
                     {messages.length === 0 ? (
                         <div className="h-[60vh] flex flex-col justify-center items-center text-center">
-                            <Bot size={48} className="text-indigo-500 mb-4" />
-                            <h1 className="text-3xl font-medium mb-2 text-white">Trợ lý AI</h1>
+                            <h1 className="text-3xl font-medium mb-2 text-white"><span><Bot size={50} /></span> Trợ lý AI  </h1>
                             <p className="text-gray-400 mb-8">Hãy đặt câu hỏi về ghi chú của bạn</p>
                         </div>
                     ) : (

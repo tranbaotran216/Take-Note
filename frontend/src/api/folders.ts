@@ -60,7 +60,7 @@ export const updateFolderToParent = async (id: number, parent_id: number) => {
 export const trashFolderById = async (folder: FolderType) => {
     try{
         const id = folder.id;
-        const res = await axios.put(`${API} ${id}/trash`);
+        const res = await axios.put(`${API}${id}/trash`);
         return res.data;
     } catch (error) {
         console.error("cant move folder to trash")
@@ -75,4 +75,38 @@ export const trashAllFolders = async () => {
         console.error("cant move all folders to trash")
         throw error;
     }
+}
+export const toggleFolderFavorite = async (id: number) => {
+    try{
+        const res = await axios.put(`${API}${id}/favorite`)
+        return res.data;
+    } catch (error) {
+        console.error("cant toggle favorite toggle")
+        throw error;
+    }
+}
+
+export const restoreFolderByID = async(id: number) => {
+    try{
+        const res = await axios.put(`${API}${id}/restore`)
+        return res.data;
+    } catch (error){
+        console.error("restore failed")
+        throw error;
+    }
+}
+
+export const restoreAllFolders = async() => {
+    try{
+        const res = await axios.put(`${API}/restore`)
+        return res.data;
+    } catch (error){
+        console.error("restore failed")
+        throw error;
+    }
+}
+
+export const getTrashedFolders = async () => {
+    const res = await axios.get(`${API}trash`); 
+    return res.data;
 }

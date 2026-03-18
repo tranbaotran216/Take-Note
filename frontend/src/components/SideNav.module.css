@@ -324,3 +324,125 @@
     margin-left: auto; /* Đẩy tag sang sát mép phải */
     padding-right: 8px;
 }
+
+/* --- GIAO DIỆN SEARCH BAR --- */
+.searchContainer {
+    position: relative;
+    margin: 0 16px 16px 16px;
+    z-index: 1000; /* Đảm bảo dropdown nằm trên cùng */
+}
+
+.searchInputWrapper {
+    display: flex;
+    align-items: center;
+    background: #252526; /* Màu nền tối giống VS Code */
+    border: 1px solid #3c3c3c;
+    border-radius: 6px;
+    padding: 6px 10px;
+    transition: all 0.2s;
+}
+
+.searchInputWrapper:focus-within {
+    border-color: #007fd4; /* Viền xanh dương đặc trưng của VS Code */
+    background: #2d2d2d;
+}
+
+.searchIcon {
+    color: #888;
+    margin-right: 8px;
+    min-width: 14px;
+}
+
+.searchInput {
+    background: transparent;
+    border: none;
+    outline: none;
+    color: #ececed;
+    width: 100%;
+    font-size: 13px;
+}
+
+.searchInput::placeholder {
+    color: #6a6b71;
+}
+
+/* --- GIAO DIỆN DROPDOWN KẾT QUẢ --- */
+.searchDropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    margin-top: 6px;
+    background: #252526; /* Nền tối */
+    border: 1px solid #454545;
+    border-radius: 6px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+    max-height: 400px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Custom Scrollbar cho Dropdown */
+.searchDropdown::-webkit-scrollbar {
+    width: 6px;
+}
+.searchDropdown::-webkit-scrollbar-thumb {
+    background: #464646;
+    border-radius: 10px;
+}
+
+.searchItem {
+    display: flex;
+    align-items: center;
+    padding: 6px 12px;
+    cursor: pointer;
+    color: #cccccc;
+    font-size: 13px;
+    transition: background 0.1s;
+}
+
+.searchItem:hover {
+    background: #04395e; /* Màu xanh highlight của VS Code */
+    color: #ffffff;
+}
+
+.itemIcon {
+    margin-right: 10px;
+    display: flex;
+    align-items: center;
+}
+
+.itemText {
+    flex: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.itemMeta {
+    font-size: 11px;
+    color: #888888;
+    margin-left: 12px;
+}
+
+.searchItem:hover .itemMeta {
+    color: #b0b0b0; /* Làm sáng text phụ khi hover */
+}
+
+.searchDivider {
+    height: 1px;
+    background: #454545;
+    margin: 4px 0;
+}
+
+.noResults {
+    padding: 12px;
+    text-align: center;
+    color: #888;
+    font-size: 12px;
+}
+
+.sidenav:not(.open) .searchContainer {
+    display: none;
+}

@@ -1,10 +1,11 @@
 import { Folder, ChevronRight, ChevronDown } from "lucide-react"
 import styles from "./SideNav.module.css"
-import { createFolder, deleteFolder, trashFolderById } from "../api/folders";
+import { createFolder, trashFolderById } from "../api/folders";
 import type { FolderProps, FolderType, FolderListProps, NoteType } from "../types";
 import { NoteItem } from "./Notes";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import styles2 from "./button.module.css"
+
 
 
 export const AddFolderButton = ({folderList, setFolders, isOpenSideBar }: FolderProps & { isOpenSideBar: boolean }) => {
@@ -78,6 +79,33 @@ export const FolderList = ({
     
     // State quản lý việc đóng/mở thư mục
     const [isExpanded, setIsExpanded] = useState(true);
+    const folderRef = useRef<HTMLDivElement>(null);
+
+    useEffect ( () => {
+        const handleExpand = (e: Event) => {
+            const customEvent = e as CustomEvent;
+            const { folderIds, targetId } = customEvent.detail;
+
+            if (folderIds.includes(targetId)) {
+                if (folder.id === targetId) {
+                    setIsExpanded(prev => !prev)
+
+                    // scroll mouse
+                    setTimeout(() => {
+                        folderRef.current?.scrollIntoView({
+                            behavior: 'smooth',
+                            block: 'center'
+                        });
+                    }, 100);
+                } else {
+                    setIsExpanded(true);
+                }
+            } 
+        };
+
+        window.addEventListener("expand-folders", handleExpand)
+        return () => window.removeEventListener("expand-folders", handleExpand)
+    }, [folder.id]);
 
     const childFolders = folders.filter((f: FolderType) => f.parent_id === folder.id  && !f.is_deleted)
     const childNotes = notes.filter((n: NoteType) => n.folder_id == folder.id && !n.is_deleted)
@@ -86,7 +114,7 @@ export const FolderList = ({
     const indentBase = 16; 
     
     return(
-        <div className={styles.folderWrapper}>
+        <div className={styles.folderWrapper} ref={folderRef}>
             <div
                 className={styles.navItems}
                 style={{ paddingLeft: `${(depth * indentBase) + 4}px` }}
