@@ -104,6 +104,8 @@ export const DeleteNote = async (note: NoteType, setNotes: React.Dispatch<React.
         await trashNoteById(note.id);
         setNotes(prevNotes => prevNotes.filter(n => n.id !== note.id));
         console.log("Xóa note thành công");
+        window.dispatchEvent(new CustomEvent('refresh-trash'));
+        console.log("🚀 Đã bắn tín hiệu refresh-trash!");
     }catch (error) {
         console.error("Lỗi xóa note:", error);
     }

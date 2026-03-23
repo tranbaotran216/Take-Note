@@ -1,7 +1,7 @@
 /* Container chính của trang Trash */
 .container {
     padding: 20px 40px;
-    max-width: 800px;
+    max-width: 100%; 
     margin: 0 auto;
     color: #ececed;
     animation: fadeIn 0.3s ease-in-out;
@@ -25,9 +25,9 @@
 }
 
 .listContainer {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 16px;
     margin-bottom: 30px;
 }
 
@@ -38,22 +38,31 @@
     padding: 10px 0;
 }
 
-/* Item Folder bị xóa */
-.folderItem {
+.cardItem {
     display: flex;
     align-items: center;
     gap: 12px;
-    padding: 12px 16px;
+    padding: 10px 16px;
     background: #232530;
     border: 1px solid transparent;
     border-radius: 8px;
     cursor: context-menu;
     transition: all 0.2s ease;
+    overflow: hidden;
+    min-width: 0;
 }
 
-.folderItem:hover {
+.cardItem:hover {
     background: #2d2f39;
     border-color: #3b82f6;
+}
+
+.noteWrapper {
+    flex: 1; 
+    display: flex;
+    align-items: center;
+    overflow: hidden;
+    min-width: 0; /* THÊM DÒNG NÀY */
 }
 
 .folderName {
@@ -66,6 +75,7 @@
     margin-left: auto;
     font-size: 12px;
     color: #6a6b71;
+    white-space: nowrap; 
 }
 
 /* --- Context Menu (Chuột phải) --- */

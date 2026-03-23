@@ -38,19 +38,22 @@ const Trash = () => {
 
     useEffect( () => {
         fetchTrashData();
+        
         const handleClickOutside = (event:MouseEvent) => {
             if (contextMenuRef.current && !contextMenuRef.current.contains(event.target as Node)) {
-                setContextMenu({
-                    visible: false,
-                    type:null,
-                    item:null,
-                    x: event.clientX,
-                    y: event.clientY
-                })
+                setContextMenu(prev => ({ ...prev, visible: false }));
             }
         }
+        
+        const handleRefreshTrash = () => {
+            fetchTrashData();
+        };
+        window.addEventListener('refresh-trash', handleRefreshTrash as EventListener);
         document.addEventListener('mousedown', handleClickOutside);
-        return () => document.removeEventListener('mousedown', handleClickOutside);
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+            window.removeEventListener('refresh-trash', handleRefreshTrash as EventListener);
+        };
     },[] );
 
     const contextMenuRef = useRef<HTMLDivElement>(null);
@@ -80,6 +83,7 @@ const Trash = () => {
                 setNotes(prev => prev.filter(n => n.id !== contextMenu.item?.id));
             }
             window.dispatchEvent(new CustomEvent('refresh-sidebar'));
+            fetchTrashData();
         } catch (error) {
             console.error("Lỗi khi khôi phục:", error);
         } finally {
@@ -101,6 +105,7 @@ const Trash = () => {
                 await deleteNoteById(contextMenu.item.id);
                 setNotes(prev =>  prev.filter(n => n.id !== contextMenu.item?.id));
             }
+            fetchTrashData();
         } catch (error) {
             console.error("Lỗi khi xóa vĩnh viễn:", error);
         } finally {
@@ -120,7 +125,9 @@ const Trash = () => {
                     <div 
                         key={`del-f-${folder.id}`} 
                         onContextMenu={(e) => handleRightClick(e, folder, 'folder')}
-                        className={styles.folderItem}
+                        
+                        // Đổi class này thành cardItem
+                        className={styles.cardItem}
                     >
                         <Folder size={18} color="#dcb67a" />
                         <span className={styles.folderName}>{folder.name}</span>
@@ -135,14 +142,25 @@ const Trash = () => {
             <div className={styles.listContainer}>
                 {notes.length === 0 && <span className={styles.emptyText}>Không có ghi chú nào.</span>}
                 {notes.map(n => (
-                    <NoteItem 
-                        key={n.id}
-                        note={n}
-                        isOpen={true} 
-                        depth={0}
-                        handleNoteRightClick={(e) => handleRightClick(e, n, 'note')}
-                        handleMoveToParent={async() => {}} 
-                    />
+                    // Dùng chung class cardItem để thẻ Note có khung giống hệt thẻ Folder
+                    <div key={`del-n-${n.id}`} className={styles.cardItem}>
+                        
+                        {/* Wrapper giúp NoteItem đẩy span ngày xóa sang tít bên phải */}
+                        <div className={styles.noteWrapper}>
+                            <NoteItem
+                                key={n.id}
+                                note={n}
+                                isOpen={true}
+                                depth={0}
+                                handleNoteRightClick={(e) => handleRightClick(e, n, 'note')}
+                                handleMoveToParent={async() => {}}
+                            />
+                        </div>
+
+                        <span className={styles.dateText}>
+                            Đã xóa: {n.deleted_at ? new Date(n.deleted_at).toLocaleDateString() : 'N/A'}
+                        </span>
+                    </div>
                 ))}
             </div>
 
@@ -156,7 +174,6 @@ const Trash = () => {
                     <div onClick={handleRestore} className={styles.menuItem}>
                         <RotateCcw size={14} /> Khôi phục
                     </div>
-                    {/* Bổ sung class deleteItem để hiển thị màu đỏ cảnh báo */}
                     <div onClick={handlePermanentDelete} className={`${styles.menuItem} ${styles.deleteItem}`}>
                         <Trash2 size={14} /> Xóa vĩnh viễn
                     </div>

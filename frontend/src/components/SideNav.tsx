@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useRef } from "react"
-import { Home, Settings, Menu, User, BotMessageSquare, Search, Folder, Star, Trash2Icon } from "lucide-react"
+import React, { useState, useEffect, useRef, useMemo } from "react"
+import { Home, Settings, Menu, User, BotMessageSquare, Search, Folder, Star, Trash2Icon, ListFilter, ArrowBigDown, SortAscIcon } from "lucide-react"
 import styles from "./SideNav.module.css"
 import { Link, useNavigate, useLocation } from "react-router-dom"
 import { AddFolderButton, DeleteFolder, FolderList } from "./Folders"
@@ -24,6 +24,32 @@ const SideNav = ({ isOpen, setIsOpen, width, setWidth }: SideNavProps) => {
     const [isResizing, setIsResizing] = useState<boolean>(false);
     const startXRef = useRef<number>(0);
     const startWidthRef = useRef<number>(0);
+
+    const [sortBy, setSortBy] = useState<'date' | 'name'>('date')
+
+    const sortedFolders = useMemo(() => {
+        return [...folders].sort((a,b) => {
+            if (sortBy === 'name') {
+                return (a.name || "" ).localeCompare(b.name || "");
+            } else {
+                const dateA = new Date(a.updated_at || a.created_at || 0).getTime();
+                const dateB = new Date(b.updated_at || b.created_at || 0).getTime();
+                return dateB - dateA;
+            }
+        });
+    }, [folders, sortBy]);
+
+    const sortedNotes = useMemo(() => {
+        return [...notes].sort((a, b) => {
+            if (sortBy === 'name') {
+                return (a.title || "").localeCompare(b.title || "");
+            } else {
+                const dateA = new Date(a.updated_at || a.created_at || 0).getTime();
+                const dateB = new Date(b.updated_at || b.created_at || 0).getTime();
+                return dateB - dateA;
+            }
+        });
+    }, [notes, sortBy]);
 
     const minWidth = MIN_SIDENAV_WIDTH;
     const maxWidth = MAX_SIDENAV_WIDTH;
@@ -297,18 +323,32 @@ const SideNav = ({ isOpen, setIsOpen, width, setWidth }: SideNavProps) => {
                     />
                 </div>
 
-                <button 
-                    className={styles.menuButton}
-                    onClick={() => setIsOpen(!isOpen)}
-                    aria-label="Toggle Menu"
-                >
-                    <div style={{ position: 'relative' }}>
-                        <Menu size={20} />
-                        {!isOpen && notificationCount > 0 && (
-                            <span className={styles.badge}>{notificationCount}</span>
-                        )}
-                    </div>
-                </button>
+                <div style={{ display: 'flex', gap: '4px', flexShrink: 0 }}>
+                    {isOpen && (
+                        <button 
+                            className={styles.menuButton}
+                            onClick={() => setSortBy(prev => prev === 'date' ? 'name' : 'date')}
+                            title={sortBy === 'date' ? "Đang sắp xếp theo Mới cập nhật" : "Đang sắp xếp theo Tên (A-Z)"}
+                        >
+                            <div>
+                                <SortAscIcon size={16} color={sortBy === 'date' ? '#3b82f6' : '#888'} />
+                            </div>
+                        </button>
+                    )}
+
+                    <button 
+                        className={styles.menuButton}
+                        onClick={() => setIsOpen(!isOpen)}
+                        aria-label="Toggle Menu"
+                    >
+                        <div style={{ position: 'relative' }}>
+                            <Menu size={20} />
+                            {!isOpen && notificationCount > 0 && (
+                                <span className={styles.badge}>{notificationCount}</span>
+                            )}
+                        </div>
+                    </button>
+                </div>
             </div>
 
             <div className={styles.divider}/>
@@ -388,12 +428,12 @@ const SideNav = ({ isOpen, setIsOpen, width, setWidth }: SideNavProps) => {
 
                 {isOpen && <div className={styles.sectionHeader}>Folders</div>}
                 <nav>
-                    {folders.filter(efolder => !efolder.parent_id && !efolder.is_deleted).map(folder => (
+                    {sortedFolders.filter(efolder => !efolder.parent_id && !efolder.is_deleted).map(folder => (
                         <FolderList 
                             key={folder.id}
                             folder={folder}
-                            folders={folders}
-                            notes={notes}
+                            folders={sortedFolders}
+                            notes={sortedNotes}
                             isOpen={isOpen}
                             editingFolderId={editingFolderId}
                             tempFolderName={tempFolderName}
@@ -451,7 +491,7 @@ const SideNav = ({ isOpen, setIsOpen, width, setWidth }: SideNavProps) => {
                 <div className={styles.divider} />  
                 <div className={styles.sectionHeader}>Notes</div>
                 <div>
-                    {notes.filter( note => !note.folder_id && !note.is_deleted).map(note => (
+                    {sortedNotes.filter( note => !note.folder_id && !note.is_deleted).map(note => (
                         <NoteItem 
                             key={note.id}
                             note={note}
@@ -498,7 +538,7 @@ const SideNav = ({ isOpen, setIsOpen, width, setWidth }: SideNavProps) => {
                 <>
                     <div className={styles.sectionHeader}>Favorites</div>
                     <div style={{ marginBottom: 12 }}>
-                        {folders.filter( f=> f.is_favorite && !f.is_deleted).map( folder => (
+                        {sortedFolders.filter( f=> f.is_favorite && !f.is_deleted).map( folder => (
                             <div key={`fav-f-${folder.id}`} className={styles.navItems} onClick={() => handleClickFolderExpansion(folder.id)}>
                                 <div className={styles.folderItem}>
                                     <Star size={14} fill="#eab308" color="#eab308" /> {/* Ngôi sao vàng */}
@@ -507,7 +547,7 @@ const SideNav = ({ isOpen, setIsOpen, width, setWidth }: SideNavProps) => {
                             </div>
                         ))}
 
-                        {notes.filter(n => n.is_favorite && !n.is_deleted).map(note => (
+                        {sortedNotes.filter(n => n.is_favorite && !n.is_deleted).map(note => (
                             <div key={`fav-n-${note.id}`} className={styles.navItems} onClick={() => navigate(`/notes/${note.id}`)}>
                                 <div className={styles.folderItem}> {/* Dùng chung class cho đẹp */}
                                     <Star size={14} fill="#f1cb58" color="#f8cd4c" />
@@ -517,8 +557,8 @@ const SideNav = ({ isOpen, setIsOpen, width, setWidth }: SideNavProps) => {
                         ))}
                         
                         {/* Hiển thị dòng chữ nếu chưa có Favorite nào */}
-                        {folders.filter(f => f.is_favorite && !f.is_deleted).length === 0 && 
-                        notes.filter(n => n.is_favorite && !n.is_deleted).length === 0 && (
+                        {sortedFolders.filter(f => f.is_favorite && !f.is_deleted).length === 0 && 
+                        sortedNotes.filter(n => n.is_favorite && !n.is_deleted).length === 0 && (
                             <div style={{ padding: '0 24px', color: '#6a6b71', fontSize: '12px' }}>
                                 No favorites yet.
                             </div>

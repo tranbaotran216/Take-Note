@@ -65,6 +65,8 @@ export const DeleteFolder = async (
             return !n.folder_id || !folderIdsToDelelte.has(n.folder_id);
         }))
         console.log (`deleted (re-render successfully) ${deleted_folder.id} - ${deleted_folder.name}`);
+        window.dispatchEvent(new CustomEvent('refresh-trash'));
+        console.log("🚀 Đã bắn tín hiệu refresh-trash!");
     } catch (error) {
         console.error("delete folder error:", error)
     }

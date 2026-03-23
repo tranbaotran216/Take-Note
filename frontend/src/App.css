@@ -1,13 +1,13 @@
 #root {
-  max-width: 1280px;
-  /* margin: 0 auto;
-  padding: 1rem; */
+  width: 100%;
+  min-height: 100vh;
 
 }
 
 .app-container {
   display: flex;
   min-height: 100vh;
+  width: 100%;
 }
 
 .main-content {
@@ -16,6 +16,7 @@
   padding: 20px;
   transition: margin-left 0.15s ease-in-out;
   width: 100%;
+  min-width: 0;
 }
 
 /* .main-content.shifted không còn sử dụng, margin từ inline style */
