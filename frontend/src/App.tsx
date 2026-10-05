@@ -1,6 +1,5 @@
 
 import './App.css'
-import { Helmet } from 'react-helmet-async'
 import SideNav from './components/SideNav'
 import { Route, Routes } from 'react-router-dom'
 import Home from "./pages/Home"

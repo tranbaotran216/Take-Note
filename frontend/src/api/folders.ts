@@ -1,7 +1,7 @@
 import axios from "axios";
 import type { FolderType } from "../types";
 
-const API = "http://localhost:8000/folders/"
+const API = "/folders/"
 
 
 export const createFolder = async (name:string) => {

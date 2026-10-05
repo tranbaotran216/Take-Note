@@ -1,7 +1,7 @@
 import axios from "axios";
 
 
-const API = "http://localhost:8000/notes/"
+const API = "/notes/"
 
 export const CreateNote = async(title:string, content:string) =>{
     const response = await axios.post(`${API}`, 

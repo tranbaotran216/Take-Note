@@ -140,7 +140,7 @@ export const UpdateNote = async (note: NoteType, notes: NoteType[], setNotes: Re
     }
 }
 
-export const NoteItem = ({ note, isOpen, depth=0, handleNoteRightClick, handleMoveToParent }: NoteItemProps) => {
+export const NoteItem = ({ note, isOpen, depth=0, handleNoteRightClick, handleMoveToParent: _handleMoveToParent }: NoteItemProps) => {
     const location = useLocation()
     const isActive = location.pathname === `/notes/${note.id}`
 

@@ -1,4 +1,4 @@
-import { data, useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { getAllNotes, getNoteById, updateNote } from "../api/notes"; // Nhớ import updateNote
 import { useState, useEffect, useRef } from "react";
 

@@ -1,0 +1,8 @@
+{
+  "name": "Take Note",
+  "description": "A rich-text note-taking application with folder organization, trash management, and an AI note assistant.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

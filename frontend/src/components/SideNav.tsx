@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo } from "react"
-import { Home, Settings, Menu, User, BotMessageSquare, Search, Folder, Star, Trash2Icon, ListFilter, ArrowBigDown, SortAscIcon } from "lucide-react"
+import { Home, Settings, Menu, User, BotMessageSquare, Search, Folder, Star, Trash2Icon, SortAscIcon } from "lucide-react"
 import styles from "./SideNav.module.css"
 import { Link, useNavigate, useLocation } from "react-router-dom"
 import { AddFolderButton, DeleteFolder, FolderList } from "./Folders"

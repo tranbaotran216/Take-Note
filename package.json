@@ -1,0 +1,28 @@
+{
+  "name": "take-note",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "workspaces": [
+    "frontend"
+  ],
+  "scripts": {
+    "dev": "tsx server.ts",
+    "build": "npm --prefix frontend run build",
+    "start": "tsx server.ts",
+    "lint": "npm --prefix frontend run lint"
+  },
+  "dependencies": {
+    "@google/genai": "^1.0.0",
+    "cors": "^2.8.5",
+    "express": "^4.21.2",
+    "vite": "^7.3.1"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.17",
+    "@types/express": "^5.0.0",
+    "@types/node": "^22.0.0",
+    "tsx": "^4.19.2",
+    "typescript": "~5.9.3"
+  }
+}

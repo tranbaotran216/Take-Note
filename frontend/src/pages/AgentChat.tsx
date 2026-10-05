@@ -1,5 +1,5 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { Send, User, Bot, Sparkles } from 'lucide-react';
+import { useState, useRef, useEffect } from 'react';
+import { User, Bot, Sparkles } from 'lucide-react';
 import { sendMessage } from '../api/agent';
 
 interface Message {
